@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"sync"
@@ -10,20 +11,25 @@ import (
 
 var wg sync.WaitGroup
 
-func crawling(page int) {
-	resp, err := http.Get(fmt.Sprintf("http://tailieuso.tlu.edu.vn/flowpaper/services/view.php?doc=5547919287785293543991158337515674687&format=png&page=%v", page) + "&subfolder=55%2F47%2F91%2F")
+func crawling(page int) error {
+	resp, err := http.Get(fmt.Sprintf("http://tailieuso.tlu.edu.vn/flowpaper/services/view.php?doc=57346364846697234711889407769857573585&format=jpg&page=%v", page) + "&subfolder=57%2F34%2F63%2F")
 	if err != nil {
-		panic(err)
+		return err
 	}
 	data, err := ioutil.ReadAll(resp.Body)
-	os.WriteFile(fmt.Sprintf("./workdir/page%v.png", page), data, 0644)
-	wg.Done()
+	os.WriteFile(fmt.Sprintf("./workdir/page%v.jpg", page), data, 0644)
+	return err
 }
 
 func main() {
-	for i := 1; i <= 173; i++ {
+	for i := 1; i <= 10000; i++ {
 		wg.Add(1)
-		go crawling(i)
+		go func(page int) {
+			if err := crawling(page); err != nil {
+				log.Println("Error at page ", page)
+			}
+			wg.Done()
+		}(i)
 	}
 	wg.Wait()
 }
