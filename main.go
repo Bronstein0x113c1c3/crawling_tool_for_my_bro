@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,13 +17,18 @@ func crawling(page int) error {
 	if err != nil {
 		return err
 	}
-	data, err := ioutil.ReadAll(resp.Body)
-	os.WriteFile(fmt.Sprintf("./workdir/page%v.jpg", page), data, 0644)
-	return err
+	data, _ := ioutil.ReadAll(resp.Body)
+	if string(data) != "Error:Error converting document, make sure the conversion tool is installed and that correct user permissions are applied to the SWF Path directory<br/><br/>Click <a href='http://flowpaper.com/docs_php.jsp'>here</a> for more information on configuring FlowPaper with PH" {
+		os.WriteFile(fmt.Sprintf("./workdir/page%v.jpg", page), data, 0644)
+		return nil
+	} else {
+		return errors.New("Not found")
+	}
+
 }
 
 func main() {
-	for i := 1; i <= 10000; i++ {
+	for i := 1; i <= 500; i++ {
 		wg.Add(1)
 		go func(page int) {
 			if err := crawling(page); err != nil {
